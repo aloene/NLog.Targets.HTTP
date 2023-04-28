@@ -427,6 +427,7 @@ namespace NLog.Targets.Http
             if (!_propertiesChanged.Any()) return;
             lock (_propertiesChanged)
             {
+                _httpClient?.Dispose();
                 // ReSharper disable once UseObjectOrCollectionInitializer
 #if NETCOREAPP
                 var handler = new SocketsHttpHandler();
@@ -435,6 +436,7 @@ namespace NLog.Targets.Http
 #else
                 var handler = new WebRequestHandler();
 #endif
+
                 var nullEvent = LogEventInfo.CreateNullEvent();
                 var proxyUrl = ProxyUrl?.Render(nullEvent);
                 handler.UseProxy = !string.IsNullOrWhiteSpace(proxyUrl);
@@ -471,16 +473,17 @@ namespace NLog.Targets.Http
                     // UseProxy will not be set, if proxyUrl is null or whitespace (above, few lines)
                     // ReSharper disable once AssignNullToNotNullAttribute
                     handler.Proxy = new WebProxy(new Uri(proxyUrl))
-                        { UseDefaultCredentials = useDefaultCredentials };
+                    { UseDefaultCredentials = useDefaultCredentials };
                     if (!useDefaultCredentials)
                     {
                         var cred = proxyUser.Split('\\');
                         handler.Proxy.Credentials = cred.Length == 1
                             ? new NetworkCredential
-                                { UserName = proxyUser, Password = ProxyPassword?.Render(nullEvent) ?? string.Empty }
+                            { UserName = proxyUser, Password = ProxyPassword?.Render(nullEvent) ?? string.Empty }
                             : new NetworkCredential
                             {
-                                Domain = cred[0], UserName = cred[1],
+                                Domain = cred[0],
+                                UserName = cred[1],
                                 Password = ProxyPassword?.Render(nullEvent) ?? string.Empty
                             };
                     }
@@ -493,7 +496,8 @@ namespace NLog.Targets.Http
                 if (IgnoreSslErrors)
                 {
 #if NETCOREAPP
-                    handler.SslOptions = new SslClientAuthenticationOptions{
+                    handler.SslOptions = new SslClientAuthenticationOptions
+                    {
                         RemoteCertificateValidationCallback = (sender, certificate, chain, errors) => true
                     };
 #elif NETSTANDARD
@@ -504,6 +508,15 @@ namespace NLog.Targets.Http
                 }
 
                 _propertiesChanged.Clear();
+            }
+        }
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                _httpClient?.Dispose();
             }
         }
     }
