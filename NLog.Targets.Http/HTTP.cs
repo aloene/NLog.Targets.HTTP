@@ -218,7 +218,6 @@ namespace NLog.Targets.Http
 
         public HTTP()
         {
-            OptimizeBufferReuse = true; // Optimize RenderLogEvent()
             BatchSize = 1; // No batching by default
             OverflowAction = Wrappers.AsyncTargetWrapperOverflowAction.Grow; // No queue-limit by default
             RetryCount = int.MaxValue; // Infinite retry by default

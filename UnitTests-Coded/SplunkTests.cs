@@ -21,7 +21,6 @@ namespace UnitTests_Coded
                 Url = "https://localhost:8088/services/collector/event",
                 Authorization = "Splunk b87acd5b-3eba-4f0e-b768-1a715fd52871",
                 Name = "SplunkTarget",
-                InMemoryCompression = false,
                 BatchSize = 50000,
                 BatchAsJsonArray = false,
                 Layout = new JsonLayout
